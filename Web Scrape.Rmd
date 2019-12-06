@@ -1,0 +1,139 @@
+---
+title: "WFTDA Web Scrape"
+author: "Denali Carpenter"
+date: "9/25/2019"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rvest)
+library(stringr)
+```
+
+## Women's Flat Track Derby Association Web Scrape
+
+Pulling Names, Location, Country's, and Logos of leagues from
+https://wftda.com/wftda-leagues/.
+
+First, we read in the html, and take a look at the structure.
+```{r Parse, include=TRUE, echo=TRUE, warning=FALSE}
+derbyParse <- read_html("https://wftda.com/wftda-leagues/")
+str(derbyParse)
+```
+
+## Finding the correct object class
+
+Next, by inspecting the html of the website, we notice we want to pull 
+all of the objects with div class.
+
+```{r Nodes, echo=FALSE}
+derbyNodes <- html_nodes(derbyParse, "div")
+head(derbyNodes)
+```
+## Teams
+
+Again, using the html, we can find exaclty which of these objects contains the information we want.
+
+
+```{r Teams, warning=FALSE}
+index <- str_detect(derbyNodes, "col-xs-6 col-sm-4 col-md-3 col-lg-2 text-center leagues-item grid-item league_type-member")
+
+derbyTeams <- derbyNodes[index]
+derbyTeams <- derbyTeams[-1:-5]
+head(derbyTeams)
+```
+
+## Names
+Now, we want to gather our first variable for the intended dataset, NAMES.
+
+```{r Names, warning=FALSE}
+derbyNames <- html_nodes(derbyTeams, "h5")
+derbyNames <- str_replace(derbyNames, ".*\">(.+)</span></a></h5>","\\1")
+head(derbyNames)
+```
+
+## Location
+This next part was a bit tricky, due to the location of the Leagues Locations
+
+```{r Location, warning=FALSE}
+derbyLocation <- html_nodes(derbyTeams, "div")
+indexLocation <- str_detect(derbyLocation, "league-meta league-location")
+derbyLocation <- derbyLocation[indexLocation]
+derbyLocation <- str_split(derbyLocation, "span")
+derbyLocation <- unlist(derbyLocation)
+derbyLocation <- derbyLocation[-grep("div|class|span", derbyLocation)]
+derbyLocation <- str_split(derbyLocation, "\t")
+derbyLocation <- unlist(derbyLocation)
+derbyLocation <- derbyLocation[-grep(">\r\n", derbyLocation)]
+derbyLocation <- derbyLocation[grep(" ", derbyLocation)]
+derbyLocation <- str_split(derbyLocation, "<")
+derbyLocation <- unlist(derbyLocation)
+derbyLocation <- derbyLocation[grep(",", derbyLocation)]
+head(derbyLocation)
+```
+
+## Country
+
+Similarly to the location, we want to break down derbyTeams a bit more. We first want all of the objects with "div." We then want to take all of the objects with "span." We then find which of the cases contains country names and remove the excess.
+
+```{r Country, warning=FALSE}
+derbyCountry <- html_nodes(derbyTeams, "div")
+derbyCountry <- html_nodes(derbyCountry, "span")
+indexCountry <- str_detect(derbyCountry, "league_country")
+derbyCountry <- derbyCountry[indexCountry]
+derbyCountry <- str_replace(derbyCountry, ".*\">(.+)</span>", "\\1")
+head(derbyCountry)
+```
+
+
+## Logo
+As we dig further into derbyTeams we can finds a link to a png of the logo of each team. This is stored as an object "img." We can pull all of these, then find the cases where the source is listed, pull those, and retreive the URLs.
+
+```{r Logo, warning=FALSE}
+derbyLogo <- html_nodes(derbyTeams, "img")
+indexLogo <- str_detect(derbyLogo, "img src")
+derbyLogo <- derbyLogo[indexLogo]
+derbyLogo <- str_split(derbyLogo, "=")
+derbyLogo <- unlist(derbyLogo)
+derbyLogo <- derbyLogo[grep("https", derbyLogo)]
+derbyLogo <- str_replace(derbyLogo, "alt", "")
+derbyLogo <- gsub('"', '', derbyLogo)
+derbyLogo <- gsub(' ', '', derbyLogo)
+head(derbyLogo)
+```
+
+## Website
+Similarly to finding the URLs of the logo images, we want to find the extensions for each of the leagues. We can find these in derbyTeams stored in the "a' objects. We then find the cases with "league_names," and split the strings and unlist them until we have the exact extensions we want. Then we simply paste the beginning of the URLs onto all of our extensions.
+
+```{r Website, warning=FALSE}
+derbyLink <- html_nodes(derbyTeams, "a")
+indexLink <- str_detect(derbyLink, "league_name")
+derbyLink <- derbyLink[indexLink]
+derbyLink <- str_split(derbyLink, "><span")
+derbyLink <- unlist(derbyLink)
+derbyLink <- derbyLink[grep("href", derbyLink)]
+derbyLink <- str_split(derbyLink, "=")
+derbyLink <- unlist(derbyLink)
+derbyLink <- derbyLink[-grep("href", derbyLink)]
+
+derbyLink <- paste("https://wftda.com", derbyLink)
+derbyLink <- str_replace(derbyLink, "\ ", "")
+derbyLink <- gsub('"', '', derbyLink)
+head(derbyLink)
+```
+
+## Data Frame
+Finally, we just want to compile our dataset and export it.
+```{r Dataframe}
+WFTDA_data <- data.frame(Names = derbyNames,
+                         Location = derbyLocation, 
+                         Country =derbyCountry,
+                         Logo = derbyLogo,
+                         Websites = derbyLink)
+write.csv(WFTDA_data, file = "WFTDA_data.csv")
+```
+
