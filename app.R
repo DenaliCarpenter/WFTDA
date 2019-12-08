@@ -15,6 +15,7 @@ ui <- fluidPage(
   theme = shinytheme("slate"),
   useShinyjs(),
   titlePanel("Women's Flat Track Derby Association League Logos"),
+  sidebarPanel(
   selectInput(inputId = "inputCountry", 
               label = "Countries",
               choices = data$Country),
@@ -22,10 +23,12 @@ ui <- fluidPage(
            selectInput(inputId = "inputNames",
                        label = "League",
                        choices = sort(unique(data$Names)))),
+  textOutput("Location")
+  tags$a(href=as.character(data$Website[data$Names == input$inputNames]),
+         "Website")),
 
   mainPanel(
-  uiOutput("image1", click = "myImage"),
-  textOutput("Location")
+  uiOutput("image1", click = "myImage")
   )
 )
 
@@ -48,9 +51,9 @@ server <- function(input, output, session){
     imgurl2 = data$Logo[data$Names == input$inputNames]
 
     div(id = "myImage",
-        tags$img(src=imgurl2, width = 600, height = 600),
-        tags$a(href=as.character(data$Website[data$Names == input$inputNames]),
-               "Website")
+        tags$img(src=imgurl2, width = 600, height = 600)
+        # tags$a(href=as.character(data$Website[data$Names == input$inputNames]),
+        #        "Website")
         )
     })
 
