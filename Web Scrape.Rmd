@@ -3,8 +3,8 @@ title: "WFTDA Web Scrape"
 author: "Denali Carpenter"
 date: "9/25/2019"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
   html_document: default
 ---
 
@@ -68,7 +68,7 @@ derbyLocation <- unlist(derbyLocation)
 derbyLocation <- derbyLocation[-grep("div|class|span", derbyLocation)]
 derbyLocation <- str_split(derbyLocation, "\t")
 derbyLocation <- unlist(derbyLocation)
-derbyLocation <- derbyLocation[-grep(">\r\n", derbyLocation)]
+derbyLocation <- derbyLocation[-grep(">\n", derbyLocation)]
 derbyLocation <- derbyLocation[grep(" ", derbyLocation)]
 derbyLocation <- str_split(derbyLocation, "<")
 derbyLocation <- unlist(derbyLocation)
