@@ -36,6 +36,9 @@ derbyLocation <- str_split(derbyLocation, "<")
 derbyLocation <- unlist(derbyLocation)
 derbyLocation <- derbyLocation[grep(",", derbyLocation)]
 derbyLocation <- gsub("[^[:alnum:][:blank:]?&/\\-]", "", derbyLocation)
+derbyLocation <- trimws(derbyLocation)
+
+#derbyLocation <- gsub("[A-z] [A-z]", "[A-z], [A-z]", derbyLocation)
 
 #Country
 #pulling country and removing unwanted characters
