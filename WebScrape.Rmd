@@ -54,6 +54,7 @@ Now, we want to gather our first variable for the intended dataset, NAMES.
 ```{r Names, warning=FALSE}
 derbyNames <- html_nodes(derbyTeams, "h5")
 derbyNames <- str_replace(derbyNames, ".*\">(.+)</span></a></h5>","\\1")
+derbyNames <- gsub("[^[:alnum:][:blank:]?&/\\-]", "", derbyNames)
 head(derbyNames)
 ```
 
@@ -74,6 +75,7 @@ derbyLocation <- derbyLocation[grep(" ", derbyLocation)]
 derbyLocation <- str_split(derbyLocation, "<")
 derbyLocation <- unlist(derbyLocation)
 derbyLocation <- derbyLocation[grep(",", derbyLocation)]
+derbyLocation <- gsub("[^[:alnum:][:blank:]?&/\\-]", "", derbyLocation)
 head(derbyLocation)
 ```
 
@@ -87,6 +89,37 @@ derbyCountry <- html_nodes(derbyCountry, "span")
 indexCountry <- str_detect(derbyCountry, "league_country")
 derbyCountry <- derbyCountry[indexCountry]
 derbyCountry <- str_replace(derbyCountry, ".*\">(.+)</span>", "\\1")
+derbyCountry[derbyCountry == "us"] <- "United States"
+derbyCountry[derbyCountry == "ar"] <- "Argentina"
+derbyCountry[derbyCountry == "at"] <- "Austria"
+derbyCountry[derbyCountry == "au"] <- "Australia"
+derbyCountry[derbyCountry == "be"] <- "Belgium"
+derbyCountry[derbyCountry == "br"] <- "Brazil"
+derbyCountry[derbyCountry == "ca"] <- "Canada"
+derbyCountry[derbyCountry == "cl"] <- "Chile"
+derbyCountry[derbyCountry == "ch"] <- "Switzerland"
+derbyCountry[derbyCountry == "co"] <- "Colombia"
+derbyCountry[derbyCountry == "cz"] <- "Czech Republic"
+derbyCountry[derbyCountry == "de"] <- "Germany"
+derbyCountry[derbyCountry == "dk"] <- "Denmark"
+derbyCountry[derbyCountry == "es"] <- "Spain"
+derbyCountry[derbyCountry == "fi"] <- "Finland"
+derbyCountry[derbyCountry == "fr"] <- "France"
+derbyCountry[derbyCountry == "gb"] <- "Great Britain"
+derbyCountry[derbyCountry == "ie"] <- "Ireland"
+derbyCountry[derbyCountry == "is"] <- "Iceland"
+derbyCountry[derbyCountry == "it"] <- "Italy"
+derbyCountry[derbyCountry == "jp"] <- "Japan"
+derbyCountry[derbyCountry == "mx"] <- "Mexico"
+derbyCountry[derbyCountry == "nl"] <- "Netherlands"
+derbyCountry[derbyCountry == "no"] <- "Norway"
+derbyCountry[derbyCountry == "nz"] <- "New Zealand"
+derbyCountry[derbyCountry == "pe"] <- "Peru"
+derbyCountry[derbyCountry == "pl"] <- "Poland"
+derbyCountry[derbyCountry == "pt"] <- "Portugal"
+derbyCountry[derbyCountry == "se"] <- "Sweden"
+derbyCountry[derbyCountry == "za"] <- "South Africa"
+derbyCountry <- gsub("[^[:alnum:][:blank:]?&/\\-]", "", derbyCountry)
 head(derbyCountry)
 ```
 
@@ -111,6 +144,7 @@ head(derbyLogo)
 Similarly to finding the URLs of the logo images, we want to find the extensions for each of the leagues. We can find these in derbyTeams stored in the "a' objects. We then find the cases with "league_names," and split the strings and unlist them until we have the exact extensions we want. Then we simply paste the beginning of the URLs onto all of our extensions.
 
 ```{r Website, warning=FALSE}
+#link
 derbyLink <- html_nodes(derbyTeams, "a")
 indexLink <- str_detect(derbyLink, "league_name")
 derbyLink <- derbyLink[indexLink]
@@ -120,7 +154,6 @@ derbyLink <- derbyLink[grep("href", derbyLink)]
 derbyLink <- str_split(derbyLink, "=")
 derbyLink <- unlist(derbyLink)
 derbyLink <- derbyLink[-grep("href", derbyLink)]
-
 derbyLink <- paste("https://wftda.com", derbyLink)
 derbyLink <- str_replace(derbyLink, "\ ", "")
 derbyLink <- gsub('"', '', derbyLink)
@@ -130,11 +163,12 @@ head(derbyLink)
 ## Data Frame
 Finally, we just want to compile our dataset and export it.
 ```{r Dataframe}
-WFTDA_data <- data.frame(Names = derbyNames,
+data <- data.frame(Names = derbyNames,
                          Location = derbyLocation, 
                          Country =derbyCountry,
                          Logo = derbyLogo,
                          Websites = derbyLink)
-write.csv(WFTDA_data, file = "WFTDA_data.csv")
+
+write.csv(data, file = "WFTDA_data.csv")
 ```
 
