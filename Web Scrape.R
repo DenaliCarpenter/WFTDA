@@ -110,6 +110,7 @@ data <- data.frame(Names = derbyNames,
                          Location = derbyLocation, 
                          Country =derbyCountry,
                          Logo = derbyLogo,
-                         Websites = derbyLink)
+                         Websites = as.character(derbyLink))
 
 write.csv(data, file = "WFTDA_data.csv")
+
